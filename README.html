@@ -1,0 +1,54 @@
+# NORISia
+Prueba de inteligencia artificial
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Registro por ChatGPT</title>
+</head>
+<body>
+  <h2>Registrar matrícula y demora con ChatGPT</h2>
+  <input type="text" id="mensaje" placeholder="Ej: Mi matrícula es A123 y tardé 5 minutos">
+  <button onclick="enviar()">Enviar</button>
+  <pre id="resultado"></pre>
+
+  <script>
+    const WEBHOOK_URL = "https://prod-55.westus.logic.azure.com:443/workflows/d8bb7ad937724dc88be9819ada3e9d6c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=jlgGZAHw2E_EqBC_iNT2Jr4_DWghioEOj0wmskMOKZ0";
+
+    async function enviar() {
+      const input = document.getElementById("mensaje").value;
+      const resultado = document.getElementById("resultado");
+
+      // Extraer matrícula y demora usando expresiones regulares
+      const matricula = input.match(/[A-Z]\d{3,4}/i);
+      const demora = input.match(/\d+/);
+
+      if (!matricula || !demora) {
+        resultado.textContent = "❌ No se pudo extraer matrícula o demora. Intenta con otro formato.";
+        return;
+      }
+
+      const data = {
+        matricula: matricula[0],
+        demora: demora[0]
+      };
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          resultado.textContent = "✅ Registrado correctamente:\n" + JSON.stringify(data, null, 2);
+        } else {
+          resultado.textContent = "❌ Error al enviar: " + res.statusText;
+        }
+      } catch (err) {
+        resultado.textContent = "💥 Falló el envío: " + err;
+      }
+    }
+  </script>
+</body>
+</html>

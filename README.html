@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Registro por ChatGPT</title>
+</head>
+<body>
+  <h2>Registrar matrícula y demora con ChatGPT</h2>
+  <input type="text" id="mensaje" placeholder="Ej: Mi matrícula es A123 y tardé 5 minutos">
+  <button onclick="enviar()">Enviar</button>
+  <pre id="resultado"></pre>
+
+  <script>
+    const WEBHOOK_URL = "https://prod-55.westus.logic.azure.com:443/workflows/d8bb7ad937724dc88be9819ada3e9d6c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=jlgGZAHw2E_EqBC_iNT2Jr4_DWghioEOj0wmskMOKZ0";
+
+    async function enviar() {
+      const input = document.getElementById("mensaje").value;
+      const resultado = document.getElementById("resultado");
+
+      // Extraer matrícula y demora con Regex
+      const matriculaMatch = input.match(/(matr[ií]cula es|soy|número)\s+([A-Z0-9]+)/i);
+      const demoraMatch = input.match(/tard(e|é|o)?\s+(\d+)/i);
+
+      if (!matriculaMatch || !demoraMatch) {
+        resultado.textContent = "⚠️ No pude extraer matrícula o demora. Intenta con otra frase.";
+        return;
+      }
+
+      const matricula = matriculaMatch[2];
+      const demora = demoraMatch[2];
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ matricula, demora })
+        });
+
+        if (res.ok) {
+          resultado.textContent = `✅ Enviado: Matrícula ${matricula}, demora ${demora} min.`;
+        } else {
+          resultado.textContent = `❌ Error: ${res.status}`;
+        }
+      } catch (error) {
+        resultado.textContent = `❌ Falló la conexión: ${error}`;
+      }
+    }
+  </script>
+</body>
+</html>
